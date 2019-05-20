@@ -1,16 +1,16 @@
 package cjc.tracebuilder;
 
 import cjc.tracebuilder.execution.*;
-import cjc.tracebuilder.input.InputTrace;
+import cjc.tracebuilder.input.types.InputType;
 import cjc.tracebuilder.util.UserParamParser;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Queue;
+import java.util.Scanner;
 import java.util.concurrent.*;
 
 /**
- *
+ *  The main executable class for the TraceBuilder application.  This class's main method is executed when run as a jar file.
  */
 public class MainApplication {
 
@@ -20,16 +20,18 @@ public class MainApplication {
     private static boolean _traceHandlingFinished = false;
 
     /**
-     * @param args
+     * The main method executed from java -jar <i>thisJarFile.jar</i>
+     * @param args the application's arguments (normally provided from the user console).
      */
     public static void main(String[] args) {
 
-        System.out.println("Started " + (new SimpleDateFormat("hh:mm:ss")).format(Calendar.getInstance().getTime()));
+        System.out.println("Started " + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime()));
 
         int exitcode = 0;
         //TODO test multi threading
         ExecutionStatusManager manager = ExecutionStatusManager.getInstance();
         manager.setUserParams(UserParamParser.parseParameters(args));
+        boolean isStdIn = manager.getUserParams().getInputType()==InputType.TEXTFILE;
 
         ExecutorService inputTraceReaderService = Executors.newSingleThreadExecutor();
         inputTraceReaderService.execute(new ExecutorRunnable(InputTraceReader.getInstance()));
@@ -61,8 +63,10 @@ public class MainApplication {
                 _traceHandlingFinished = true;
             }
         }
-        System.out.println("All procesing complete.");
-        System.out.println("Ended "+ (new SimpleDateFormat("hh:mm:ss")).format(Calendar.getInstance().getTime()));
+        if(!isStdIn) {
+            System.out.println("All procesing complete.");
+            System.out.println("Ended " + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime()));
+        }
         System.exit(exitcode);
 
     }

@@ -1,13 +1,21 @@
 package cjc.tracebuilder.execution;
 
-import cjc.tracebuilder.input.UserParams;
 import cjc.tracebuilder.input.types.InputType;
 
 import java.io.*;
+import java.util.Scanner;
 
+/**
+ *  A singleton executor that reads each log line the input file provided as user input with the -f parameter (or from STDIN by default)
+ *  and inserts each log line into the Queue/LinkedList of log strings to parse.
+ */
 public class InputTraceReader extends TraceBuilderExecutorBase {
     private static InputTraceReader ourInstance = new InputTraceReader();
 
+    /**
+     * Obtains our instance of the trace input reader.
+     * @return our trace reader instance.
+     */
     public static InputTraceReader getInstance() {
         return ourInstance;
     }
@@ -15,21 +23,47 @@ public class InputTraceReader extends TraceBuilderExecutorBase {
     private InputTraceReader() {
     }
 
+    /**
+     * Begins execution of the trace input reader.  Opens the file specified in the user input parameters with a Buffered reader,
+     * then reads each line and places the log string into a parsing Queue (LinkedList), to be parsed by our TraceParser.  If no
+     * input file is specified, reads from STDIN.  For STDIN, we close the reader when the user enters "/q".
+     */
     @Override
     public void startExecution() {
-        //TODO maybe concat string
+        //TODO handle system interrupt
         System.out.println("startExecution - Input");
-        BufferedReader br = createBufferedReader();
         String currentline;
-        while((currentline = readLine(br)) != null){
-            TraceParser.getInstance().addStringToParsingQueue(currentline);
+        boolean isStdIn = ExecutionStatusManager.getInstance().getUserParams().getInputType()==InputType.STDIN;
+        if(isStdIn){
+            Scanner stdinScanner = new Scanner(System.in);
+            System.out.println("Please enter the first log trace: ");
+            String stdinLine = stdinScanner.nextLine();
+            while(!"/q".equals(stdinLine)){
+                TraceParser.getInstance().addStringToParsingQueue(stdinLine);
+                System.out.println("Please enter the next log trace: ");
+                stdinLine = stdinScanner.nextLine();
+            }
+            ExecutionStatusManager.getInstance().setStdInReadingFinished(true);
+        } else {
+            System.out.println("Reading from " + ExecutionStatusManager.getInstance().getUserParams().getInputFilePath());
+            BufferedReader br = createBufferedReader();
+            while ((currentline = readLine(br)) != null) {
+                TraceParser.getInstance().addStringToParsingQueue(currentline);
+            }
+            closeReader(br);
         }
-        closeReader(br);
-        System.out.println("Input finished.");
+        if(!isStdIn){
+            System.out.println("Input finished.");
+        }
         ExecutionStatusManager.getInstance().setInputFinished(true);
 
     }
 
+    /**
+     * Flag to indicate that our input reader has no more work to do.
+     *  - have we read our entire input file provided with the -f parameter (or from STDIN)
+     * @return true if our input reader is finished working.
+     */
     @Override
     public boolean noMoreWorkToDo() {
         return ExecutionStatusManager.getInstance().isInputFinished();
@@ -44,8 +78,7 @@ public class InputTraceReader extends TraceBuilderExecutorBase {
                 e.printStackTrace();
             }
         }
-        //Default to STDIN
-        return new BufferedReader(new InputStreamReader((System.in)));
+        return null;
     }
 
     private String readLine(BufferedReader reader){
