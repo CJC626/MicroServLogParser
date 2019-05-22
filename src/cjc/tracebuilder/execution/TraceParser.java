@@ -3,7 +3,6 @@ package cjc.tracebuilder.execution;
 import cjc.tracebuilder.execution.pending.PendingOutputTrace;
 import cjc.tracebuilder.execution.pending.PendingServiceCall;
 import cjc.tracebuilder.input.types.InputType;
-import cjc.tracebuilder.output.types.OutputType;
 import cjc.tracebuilder.util.TraceStringParsingUtil;
 
 import java.util.*;

@@ -36,31 +36,40 @@ public class OutputTraceWriter extends TraceBuilderExecutorBase {
     @Override
     public void startExecution() {
         boolean isStdIn = ExecutionStatusManager.getInstance().getUserParams().getInputType()== InputType.STDIN;
+        boolean isStdOut = ExecutionStatusManager.getInstance().getUserParams().getOutputType()== OutputType.STDOUT;
         //TODO handle system interrupt
         if(!isStdIn) {
             System.out.println("startExecution - Output.");
         }
         BufferedWriter bw = createBufferedWriter();
 
-        while(!noMoreWorkToDo()){
-            synchronized (this) {
-                // Do we have traces ready to write?
-                if (!_tracesReadyToWrite.isEmpty()) {
-                    OutputTrace trace = _tracesReadyToWrite.remove();
-                    writeTrace(trace, bw);
+        try {
+            while (!noMoreWorkToDo()) {
+                synchronized (this) {
+                    // Do we have traces ready to write?
+                    if (!_tracesReadyToWrite.isEmpty()) {
+                        OutputTrace trace = _tracesReadyToWrite.remove();
+                        writeTrace(trace, bw);
+                    }
                 }
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        // Create a finally statement to ensure the writer is closed.
+        } finally {
+            // Output writer is finished.  Close the writer. and mark as finished.
+            try {
+                if(!isStdOut) {
+                    System.out.println("Writing finished.  Traces written to " + ExecutionStatusManager.getInstance().getUserParams().getOutputFilePath() + ".  Closing writer.");
+                }
+                if(bw != null){
+                    bw.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
-        // Output writer is finished.  Close the writer. and mark as finished.
-        try {
-            if(!isStdIn) {
-                System.out.println("Writing finished.  Traces written to " + ExecutionStatusManager.getInstance().getUserParams().getInputFilePath() + ".  Closing writer.");
-            }
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         ExecutionStatusManager.getInstance().setOutputFinished(true);
     }
 
@@ -105,15 +114,10 @@ public class OutputTraceWriter extends TraceBuilderExecutorBase {
         return new BufferedWriter(new PrintWriter(System.out));
     }
 
-    private void writeTrace(OutputTrace trace, BufferedWriter writer){
-        try {
-            //TODO maybe make newline char constant
+    private void writeTrace(OutputTrace trace, BufferedWriter writer) throws IOException {
             ObjectMapper om = new ObjectMapper();
             om.setDateFormat(new SimpleDateFormat("YYYY-MM-dd'T'hh:mm:ss.SSS'Z'"));
             writer.write(om.writeValueAsString(trace) + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

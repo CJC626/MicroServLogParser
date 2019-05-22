@@ -2,8 +2,6 @@ package cjc.tracebuilder.output;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.List;
-
 /**
  *  An output trace tree, to be written as a JSON string.  Contains the following attributes:
  *

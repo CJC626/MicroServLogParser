@@ -2,7 +2,6 @@ package cjc.tracebuilder.util;
 
 import cjc.tracebuilder.execution.pending.PendingServiceCall;
 import cjc.tracebuilder.output.OutputTrace;
-import cjc.tracebuilder.output.ServiceCall;
 
 import java.text.DateFormat;
 import java.text.ParseException;

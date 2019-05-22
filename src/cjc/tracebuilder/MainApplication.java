@@ -6,7 +6,6 @@ import cjc.tracebuilder.util.UserParamParser;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Scanner;
 import java.util.concurrent.*;
 
 /**
@@ -19,6 +18,15 @@ public class MainApplication {
     private static boolean _outputFinished = false;
     private static boolean _traceHandlingFinished = false;
 
+    private static boolean expectedShutdown = false;
+
+    //TODO make singletons?
+    private static ExecutionStatusManager manager;
+    private static ExecutorService inputTraceReaderService;
+    private static ExecutorService traceParserReaderService;
+    private static ExecutorService outputWriterService;
+    private static ExecutorService finishedTraceHandlerService;
+
     /**
      * The main method executed from java -jar <i>thisJarFile.jar</i>
      * @param args the application's arguments (normally provided from the user console).
@@ -27,22 +35,23 @@ public class MainApplication {
 
         System.out.println("Started " + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime()));
 
+        addShutdownHook();
         int exitcode = 0;
         //TODO test multi threading
-        ExecutionStatusManager manager = ExecutionStatusManager.getInstance();
+        manager = ExecutionStatusManager.getInstance();
         manager.setUserParams(UserParamParser.parseParameters(args));
-        boolean isStdIn = manager.getUserParams().getInputType()==InputType.TEXTFILE;
+        boolean isStdIn = manager.getUserParams().getInputType()==InputType.STDIN;
 
-        ExecutorService inputTraceReaderService = Executors.newSingleThreadExecutor();
+        inputTraceReaderService = Executors.newSingleThreadExecutor();
         inputTraceReaderService.execute(new ExecutorRunnable(InputTraceReader.getInstance()));
 
-        ExecutorService traceParserReaderService = Executors.newSingleThreadExecutor();
+        traceParserReaderService = Executors.newSingleThreadExecutor();
         traceParserReaderService.execute(new ExecutorRunnable(TraceParser.getInstance()));
 
-        ExecutorService outputWriterService = Executors.newSingleThreadExecutor();
+        outputWriterService = Executors.newSingleThreadExecutor();
         outputWriterService.execute(new ExecutorRunnable(OutputTraceWriter.getInstance()));
 
-        ExecutorService finishedTraceHandlerService = Executors.newSingleThreadExecutor();
+        finishedTraceHandlerService = Executors.newSingleThreadExecutor();
         finishedTraceHandlerService.execute(new ExecutorRunnable(FinishedTraceHandler.getInstance()));
 
         while(stillHaveWorkToDo(manager)){
@@ -67,6 +76,7 @@ public class MainApplication {
             System.out.println("All procesing complete.");
             System.out.println("Ended " + (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")).format(Calendar.getInstance().getTime()));
         }
+        expectedShutdown = true;
         System.exit(exitcode);
 
     }
@@ -91,6 +101,20 @@ public class MainApplication {
                     !_outputFinished ||
                     !_parsingFinished ||
                     !_traceHandlingFinished;
+    }
+
+    private static void addShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            public void run(){
+                if(!expectedShutdown){
+                    System.out.println("Unexpected Interruption.  Shutting down all executors.");
+                }
+                if(inputTraceReaderService != null && !inputTraceReaderService.isShutdown()){inputTraceReaderService.shutdown();}
+                if(traceParserReaderService != null && !traceParserReaderService.isShutdown()){traceParserReaderService.shutdown();}
+                if(finishedTraceHandlerService != null && !finishedTraceHandlerService.isShutdown()){finishedTraceHandlerService.shutdown();}
+                if(outputWriterService != null && !outputWriterService.isShutdown()){outputWriterService.shutdown();}
+            }
+        });
     }
 
 }

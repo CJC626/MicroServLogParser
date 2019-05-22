@@ -11,6 +11,7 @@ import java.util.Scanner;
  */
 public class InputTraceReader extends TraceBuilderExecutorBase {
     private static InputTraceReader ourInstance = new InputTraceReader();
+    private BufferedReader br;
 
     /**
      * Obtains our instance of the trace input reader.
@@ -21,6 +22,9 @@ public class InputTraceReader extends TraceBuilderExecutorBase {
     }
 
     private InputTraceReader() {
+        if(ExecutionStatusManager.getInstance().getUserParams().getInputType()==InputType.TEXTFILE){
+            br = createBufferedReader();
+        }
     }
 
     /**
@@ -46,11 +50,19 @@ public class InputTraceReader extends TraceBuilderExecutorBase {
             ExecutionStatusManager.getInstance().setStdInReadingFinished(true);
         } else {
             System.out.println("Reading from " + ExecutionStatusManager.getInstance().getUserParams().getInputFilePath());
-            BufferedReader br = createBufferedReader();
-            while ((currentline = readLine(br)) != null) {
-                TraceParser.getInstance().addStringToParsingQueue(currentline);
+            br = createBufferedReader();
+            try{
+                if(br == null){
+                    System.out.println("Should not get here.  Input file likely not found, and probably a bug.");
+                }
+                while ((currentline = br.readLine()) != null) {
+                    TraceParser.getInstance().addStringToParsingQueue(currentline);
+                }
+            }catch(IOException e){
+                e.printStackTrace();
+            } finally {
+                closeReader(br);
             }
-            closeReader(br);
         }
         if(!isStdIn){
             System.out.println("Input finished.");
@@ -75,27 +87,33 @@ public class InputTraceReader extends TraceBuilderExecutorBase {
                 return new BufferedReader(new InputStreamReader((new FileInputStream(
                         this.getUserParams().getInputFilePath()))));
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                System.out.println("Input file " + ExecutionStatusManager.getInstance().getUserParams().getInputFilePath() + " not found.");
+                System.exit(1);
             }
         }
         return null;
     }
 
-    private String readLine(BufferedReader reader){
-        try {
-            return reader.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    private String readLine(BufferedReader reader) throws IOException{
+        return reader.readLine();
     }
 
     private void closeReader(BufferedReader reader){
-        try {
-            System.out.println("Closing reader...");
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (reader != null) {
+            try {
+                System.out.println("Closing reader...");
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private class ReadInputTraceRunnable implements Runnable{
+
+        @Override
+        public void run() {
+
         }
     }
 }
