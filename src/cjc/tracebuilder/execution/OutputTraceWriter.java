@@ -94,10 +94,8 @@ public class OutputTraceWriter extends TraceBuilderExecutorBase {
      * @param trace output trace to add to the ready-to-write queue
      * @return true if output trace was added successfully
      */
-    public boolean addPendingTraceToReadyQueue(OutputTrace trace){
-        synchronized (this){
+    public synchronized boolean addPendingTraceToReadyQueue(OutputTrace trace){
             return _tracesReadyToWrite.add(trace);
-        }
     }
 
     private BufferedWriter createBufferedWriter(){

@@ -29,80 +29,65 @@ public class ExecutionStatusManager {
      * Flag to indicate if the input reader is finished working.
      * @return flag for if the input reader is finished
      */
-    public boolean isInputFinished() {
-        synchronized (this) {
+    public synchronized boolean isInputFinished() {
             return _inputFinished;
-        }
     }
 
     /**
      * Flag to indicate if the input reader is finished working.
      * @param _inputFinished flag for if the input reader is finished
      */
-    public void setInputFinished(boolean _inputFinished) {
-        synchronized (this) {
+    public synchronized void setInputFinished(boolean _inputFinished) {
             this._inputFinished = _inputFinished;
-        }
     }
 
     /**
      * Flag to indicate if the trace parser is finished working.
      * @return flag for if the trace parser is finished
      */
-    public boolean isProcessingFinished() {
-        synchronized (this) {
+    public synchronized boolean isProcessingFinished() {
             return _isProcessingFinished;
-        }
     }
 
     /**
      * Flag to indicate if the trace parser is finished working.
      * @param _isProcessingFinished flag for if the trace parser is finished
      */
-    public void setProcessingFinished(boolean _isProcessingFinished) {
-        synchronized (this) {
+    public synchronized void setProcessingFinished(boolean _isProcessingFinished) {
             this._isProcessingFinished = _isProcessingFinished;
-        }
     }
 
     /**
      * Flag to indicate if the finished trace handler is finished working.
      * @return flag for if the finishe trace handler is finished
      */
-    public boolean isTraceHandlingFinished() {
-        synchronized (this) {
+    public synchronized boolean isTraceHandlingFinished() {
             return _isTraceHandlingFinished;
-        }
+
     }
 
     /**
      * Flag to indicate if the finished trace handler is finished working.
      * @param _isTraceHandlingFinished flag for if the trace handler is finished
      */
-    public void setTraceHandlingFinished(boolean _isTraceHandlingFinished) {
-        synchronized (this) {
+    public synchronized void setTraceHandlingFinished(boolean _isTraceHandlingFinished) {
             this._isTraceHandlingFinished = _isTraceHandlingFinished;
-        }
     }
 
     /**
      * Flag to indicate if the output writer is finished working.
      * @return flag for if the output writer is finished
      */
-    public boolean isOutputFinished() {
-        synchronized (this) {
+    public synchronized boolean isOutputFinished() {
             return _isOutputFinished;
-        }
     }
 
     /**
      * Flag to indicate if the output writer is finished working.
      * @param _isOutputFinished flag for if the output writer is finished
      */
-    public void setOutputFinished(boolean _isOutputFinished) {
-        synchronized (this) {
+    public synchronized void setOutputFinished(boolean _isOutputFinished) {
             this._isOutputFinished = _isOutputFinished;
-        }
     }
 
     /**

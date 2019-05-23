@@ -105,11 +105,10 @@ public class TraceParser extends TraceBuilderExecutorBase {
      * @return true if the trace parser is finished working
      */
     @Override
-    public boolean noMoreWorkToDo() {
-        synchronized (_traceStringsToParse) {
+    public synchronized boolean noMoreWorkToDo() {
+        //TODO confirm proper synch
             return ExecutionStatusManager.getInstance().isInputFinished() &&
                     _traceStringsToParse.isEmpty();
-        }
     }
 
     /**
